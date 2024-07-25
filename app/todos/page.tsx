@@ -13,8 +13,8 @@ export default function Page() {
   const [todoText, setTodoText] = useState<string>("");
 
   const addTodo = (e: any) => {
-    e.preventDefault(); // Prevent page reload
-    if (todoText.trim() === "") return; // Prevent adding empty todos
+    e.preventDefault();
+    if (todoText.trim() === "") return;
     setTodos((todos) => [
       ...todos,
       {
@@ -23,7 +23,7 @@ export default function Page() {
         isDone: false,
       },
     ]);
-    setTodoText(""); // Clear input after adding
+    setTodoText("");
   };
 
   const removeTodo = (id: number) =>
