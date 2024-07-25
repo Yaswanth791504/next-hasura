@@ -5,13 +5,13 @@ export default function Todo({
   title,
   removeTodo,
   setTodoComplete,
-  isDone,
+  is_done,
 }: {
   id: number;
   title: string;
   removeTodo: (id: number) => void;
-  setTodoComplete: (id: number) => void;
-  isDone: boolean;
+  setTodoComplete: (id: number, complete: boolean) => void;
+  is_done: boolean;
 }) {
   return (
     <div className="flex flex-1 px-4 py-2 gap-5">
@@ -25,7 +25,7 @@ export default function Todo({
         <h1
           className="flex flex-1 text-blue-500"
           style={{
-            textDecoration: isDone ? "line-through" : "none",
+            textDecoration: is_done ? "line-through" : "none",
             textDecorationColor: "#3b82f6",
           }}
         >
@@ -36,7 +36,8 @@ export default function Todo({
         type="checkbox"
         name=""
         id=""
-        onChange={() => setTodoComplete(id)}
+        checked={is_done}
+        onChange={() => setTodoComplete(id, !is_done)}
       />
     </div>
   );

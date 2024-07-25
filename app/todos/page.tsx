@@ -1,46 +1,59 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Todo from "../_components/Todo";
+import {
+  addTodoToHasura,
+  deleleTodoFromHasura,
+  getTodosFromHasura,
+  updateTodoInHasura,
+} from "./api/route";
 
-interface Todo {
+export interface TodoInterface {
   id: number;
   title: string;
-  isDone: boolean;
+  is_done: boolean;
 }
 
 export default function Page() {
-  const [todos, setTodos] = useState<Array<Todo>>([]);
+  const [todos, setTodos] = useState<Array<TodoInterface>>([]);
   const [todoText, setTodoText] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const addTodo = (e: any) => {
-    e.preventDefault(); // Prevent page reload
-    if (todoText.trim() === "") return; // Prevent adding empty todos
-    setTodos((todos) => [
-      ...todos,
-      {
-        id: Math.floor(Math.random() * 100),
-        title: todoText,
-        isDone: false,
-      },
-    ]);
-    setTodoText(""); // Clear input after adding
+  useEffect(() => {
+    setLoading(true);
+    getTodosFromHasura()
+      .then((todos: Array<TodoInterface>) => setTodos(todos))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const addTodo = async (formdata: any) => {
+    const todoText = formdata.get("todo");
+    if (todoText.trim() === "") return;
+    const newTodo: TodoInterface = await addTodoToHasura(todoText);
+    console.log(newTodo);
+    setTodoText("");
+    setTodos((todos) => [...todos, newTodo]);
   };
 
-  const removeTodo = (id: number) =>
+  const removeTodo = async (id: number) => {
+    await deleleTodoFromHasura(id);
     setTodos((todos) => {
       return [...todos].filter((todo) => todo.id !== id);
     });
+  };
 
-  const setTodoComplete = (id: number) =>
+  const setTodoComplete = async (id: number, complete: boolean) => {
+    await updateTodoInHasura(id, complete);
     setTodos((todos) =>
       todos.map((todo) =>
-        todo.id === id ? { ...todo, isDone: !todo.isDone } : todo
+        todo.id === id ? { ...todo, is_done: complete } : todo
       )
     );
+  };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-24 gap-5">
-      <form onSubmit={addTodo} className="inline-flex flex-col gap-2">
+    <div className="flex min-h-screen flex-col items-center justify-start p-24 gap-5">
+      <form action={addTodo} className="inline-flex flex-col gap-2">
         <label htmlFor="todo" className="text-blue-500 font-semibold">
           Todo
         </label>
@@ -51,6 +64,8 @@ export default function Page() {
             id="todo"
             type="text"
             value={todoText}
+            autoComplete="off"
+            placeholder="Add new todo"
             onChange={(e: any) => setTodoText(e.target.value)}
           />
 
@@ -62,17 +77,27 @@ export default function Page() {
           </button>
         </div>
       </form>
+      {loading && <h2 className="text-blue-500">Loading...</h2>}
+      {todos.length === 0 && !loading && (
+        <h2 className="text-blue-500">No todos</h2>
+      )}
       <div className="min-w-80">
-        {todos.map((todo: Todo) => (
-          <Todo
-            key={todo.id}
-            title={todo.title}
-            isDone={todo.isDone}
-            removeTodo={removeTodo}
-            id={todo.id}
-            setTodoComplete={setTodoComplete}
-          />
-        ))}
+        {todos ? (
+          todos.map((todo: TodoInterface) => (
+            <Todo
+              key={todo?.id}
+              title={todo?.title}
+              is_done={todo?.is_done}
+              removeTodo={removeTodo}
+              id={todo?.id}
+              setTodoComplete={setTodoComplete}
+            />
+          ))
+        ) : (
+          <div>
+            <h1>no todos</h1>
+          </div>
+        )}
       </div>
     </div>
   );
